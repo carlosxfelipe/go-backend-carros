@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/seu-usuario/go-backend-carros/models"
 	"gorm.io/driver/postgres"
@@ -32,6 +33,9 @@ func connectDatabase() {
 
 func main() {
 	r := gin.Default()
+
+	// Adicionando middleware CORS
+	r.Use(cors.Default())
 
 	connectDatabase()
 
