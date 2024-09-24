@@ -114,10 +114,12 @@ func main() {
 			}
 		}
 		if marca := c.Query("marca"); marca != "" {
-			query = query.Where("marca = ?", marca)
+			// Usando ILIKE para busca insensível a maiúsculas e minúsculas
+			query = query.Where("marca ILIKE ?", "%"+marca+"%")
 		}
 		if modelo := c.Query("modelo"); modelo != "" {
-			query = query.Where("modelo = ?", modelo)
+			// Usando ILIKE para busca insensível a maiúsculas e minúsculas
+			query = query.Where("modelo ILIKE ?", "%"+modelo+"%")
 		}
 		if combustivel := c.Query("combustivel"); combustivel != "" {
 			query = query.Where("combustivel = ?", combustivel)
