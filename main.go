@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/seu-usuario/go-backend-carros/models"
@@ -52,9 +53,22 @@ func main() {
 		c.JSON(http.StatusOK, carrosDetalhados)
 	})
 
+	// r.GET("/carros/variacoes", func(c *gin.Context) {
+	// 	var carrosVariacao []models.CarroVariacao
+	// 	if result := DB.Find(&carrosVariacao); result.Error != nil {
+	// 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	// 		return
+	// 	}
+	// 	c.JSON(http.StatusOK, carrosVariacao)
+	// })
+
 	r.GET("/carros/variacoes", func(c *gin.Context) {
 		var carrosVariacao []models.CarroVariacao
-		if result := DB.Find(&carrosVariacao); result.Error != nil {
+		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+		limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+		offset := (page - 1) * limit
+
+		if result := DB.Offset(offset).Limit(limit).Find(&carrosVariacao); result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 			return
 		}
