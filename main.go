@@ -37,42 +37,120 @@ func main() {
 
 	r.GET("/carros", func(c *gin.Context) {
 		var carros []models.Carro
-		if result := DB.Find(&carros); result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-			return
+		limitParam := c.DefaultQuery("limit", "10")
+		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+
+		if limitParam == "all" {
+			if result := DB.Find(&carros); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+				return
+			}
+		} else {
+			limit, _ := strconv.Atoi(limitParam)
+			offset := (page - 1) * limit
+			if result := DB.Offset(offset).Limit(limit).Find(&carros); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+				return
+			}
 		}
 		c.JSON(http.StatusOK, carros)
 	})
 
 	r.GET("/carros/detalhados", func(c *gin.Context) {
 		var carrosDetalhados []models.CarroDetalhado
-		if result := DB.Find(&carrosDetalhados); result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-			return
+		limitParam := c.DefaultQuery("limit", "10")
+		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+
+		if limitParam == "all" {
+			if result := DB.Find(&carrosDetalhados); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+				return
+			}
+		} else {
+			limit, _ := strconv.Atoi(limitParam)
+			offset := (page - 1) * limit
+			if result := DB.Offset(offset).Limit(limit).Find(&carrosDetalhados); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+				return
+			}
 		}
 		c.JSON(http.StatusOK, carrosDetalhados)
 	})
 
-	// r.GET("/carros/variacoes", func(c *gin.Context) {
-	// 	var carrosVariacao []models.CarroVariacao
-	// 	if result := DB.Find(&carrosVariacao); result.Error != nil {
-	// 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-	// 		return
-	// 	}
-	// 	c.JSON(http.StatusOK, carrosVariacao)
-	// })
-
 	r.GET("/carros/variacoes", func(c *gin.Context) {
 		var carrosVariacao []models.CarroVariacao
+		limitParam := c.DefaultQuery("limit", "10")
 		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-		limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-		offset := (page - 1) * limit
 
-		if result := DB.Offset(offset).Limit(limit).Find(&carrosVariacao); result.Error != nil {
+		if limitParam == "all" {
+			if result := DB.Find(&carrosVariacao); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+				return
+			}
+		} else {
+			limit, _ := strconv.Atoi(limitParam)
+			offset := (page - 1) * limit
+			if result := DB.Offset(offset).Limit(limit).Find(&carrosVariacao); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+				return
+			}
+		}
+		c.JSON(http.StatusOK, carrosVariacao)
+	})
+
+	r.GET("/carros/search", func(c *gin.Context) {
+		var carros []models.Carro
+		query := DB.Model(&models.Carro{})
+
+		if tipo := c.Query("tipo"); tipo != "" {
+			query = query.Where("tipo = ?", tipo)
+		}
+		if ano := c.Query("ano"); ano != "" {
+			if anoInt, err := strconv.Atoi(ano); err == nil {
+				query = query.Where("ano = ?", anoInt)
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Ano inválido"})
+				return
+			}
+		}
+		if marca := c.Query("marca"); marca != "" {
+			query = query.Where("marca = ?", marca)
+		}
+		if modelo := c.Query("modelo"); modelo != "" {
+			query = query.Where("modelo = ?", modelo)
+		}
+		if combustivel := c.Query("combustivel"); combustivel != "" {
+			query = query.Where("combustivel = ?", combustivel)
+		}
+
+		if result := query.Find(&carros); result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, carrosVariacao)
+
+		c.JSON(http.StatusOK, carros)
+	})
+
+	r.GET("/carros/precos", func(c *gin.Context) {
+		var carrosDetalhados []models.CarroDetalhado
+		query := DB.Model(&models.CarroDetalhado{})
+
+		if precoMin := c.Query("precoMin"); precoMin != "" {
+			query = query.Where("preco >= ?", precoMin)
+		}
+		if precoMax := c.Query("precoMax"); precoMax != "" {
+			query = query.Where("preco <= ?", precoMax)
+		}
+		if dataReferencia := c.Query("dataReferencia"); dataReferencia != "" {
+			query = query.Where("data_referencia = ?", dataReferencia)
+		}
+
+		if result := query.Find(&carrosDetalhados); result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, carrosDetalhados)
 	})
 
 	r.Run(":8080")
