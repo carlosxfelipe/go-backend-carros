@@ -45,3 +45,6 @@ Temporary Items
 
 # Logs
 *.log
+
+# Environment variables file
+.env
