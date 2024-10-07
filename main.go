@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/seu-usuario/go-backend-carros/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,8 +18,23 @@ import (
 var DB *gorm.DB
 
 func connectDatabase() {
-	dsn := "host=aws-0-sa-east-1.pooler.supabase.com user=postgres.psuaxdrhaexvptzcpzyf password=dOpJfeX5Z2yvJNj8 dbname=postgres port=6543 sslmode=require"
-	var err error
+	// Carregar variáveis do .env
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// Montar o DSN usando variáveis de ambiente
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_SSLMODE"),
+	)
+
 	DB, err = gorm.Open(postgres.New(postgres.Config{
 		DSN:                  dsn,
 		PreferSimpleProtocol: true, // Desabilita o cache de statements preparados
